@@ -384,6 +384,9 @@ on boot
     write /sys/kernel/mm/ksm/sleep_millisecs 1500
     write /sys/kernel/mm/ksm/pages_to_scan 256
 
+    chown system system /dev/cpuctl/apps/cpu.notify_on_migrate
+    chmod 0644 /dev/cpuctl/apps/cpu.notify_on_migrate
+
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/class/leds/keyboard-backlight/brightness
     chown system system /sys/class/leds/lcd-backlight/brightness
