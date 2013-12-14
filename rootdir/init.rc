@@ -259,6 +259,9 @@ on post-fs-data
     # Set indication (checked by vold) that we have finished this action
     #setprop vold.post_fs_data_done 1
 
+    # Run sysinit
+    start sysinit
+
 on boot
 # basic network init
     ifup lo
@@ -552,3 +555,9 @@ service mdnsd /system/bin/mdnsd
     socket mdnsd stream 0660 mdnsr inet
     disabled
     oneshot
+
+# sysinit (/system/etc/init.d)
+service sysinit /system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+    user root
+    oneshot
+    disabled
