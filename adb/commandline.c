@@ -575,6 +575,24 @@ int adb_sideload_host(const char* fn) {
 
     int last_percent = -1;
     for (;;) {
+        fd_set fds;
+        struct timeval tv;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        int rc = select(fd+1, &fds, NULL, NULL, &tv);
+        size_t diff = xfer - last_xfer;
+        if (rc == 0 || diff >= (1*MB)) {
+            spin_index = (spin_index+1) % spinlen;
+            printf("\rserving: '%s' %4umb %.2fx %c", fn,
+                    (unsigned)xfer/(1*MB), (double)xfer/sz, spinner[spin_index]);
+            fflush(stdout);
+            last_xfer = xfer;
+        }
+        if (rc == 0) {
+            continue;
+        }
         if (readx(fd, buf, 8)) {
             fprintf(stderr, "* failed to read command: %s\n", adb_error());
             status = -1;
@@ -624,7 +642,7 @@ int adb_sideload_host(const char* fn) {
         }
     }
 
-    printf("\rTotal xfer: %.2fx%*s\n", (double)xfer / (sz ? sz : 1), (int)strlen(fn)+10, "");
+    printf("\ntotal xfer: %4umb %.2fx\n", (unsigned)xfer/(1*MB), (double)xfer/sz);
 
   done:
     if (fd >= 0) adb_close(fd);

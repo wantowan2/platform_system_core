@@ -216,8 +216,13 @@ bool BatteryMonitor::update(void) {
         path.appendFormat("%s/%s/online", POWER_SUPPLY_SYSFS_PATH,
                           mChargerNames[i].string());
 
-        if (readFromFile(path, buf, SIZE) > 0) {
-            if (buf[0] != '0') {
+            // Look for "type" file in each subdirectory
+            path.clear();
+            path.appendFormat("%s/%s/type", POWER_SUPPLY_SYSFS_PATH, name);
+            switch(readPowerSupplyType(path)) {
+            case ANDROID_POWER_SUPPLY_TYPE_BATTERY:
+                break;
+            default:
                 path.clear();
                 path.appendFormat("%s/%s/type", POWER_SUPPLY_SYSFS_PATH,
                                   mChargerNames[i].string());
@@ -235,9 +240,11 @@ bool BatteryMonitor::update(void) {
                     KLOG_WARNING(LOG_TAG, "%s: Unknown power supply type\n",
                                  mChargerNames[i].string());
                 }
-            }
-        }
-    }
+                break;
+            } //switch
+        } //while
+        closedir(dir);
+    }//else
 
     logthis = !healthd_board_battery_update(&props);
 
